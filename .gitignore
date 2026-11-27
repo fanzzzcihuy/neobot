@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Environment variables (RAHASIA!)
+.env
+.env.local
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+*.log
+
+# Vercel
+.vercel
+
+# Editor
+.vscode/
+.idea/

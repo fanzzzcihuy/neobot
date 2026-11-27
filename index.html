@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoBot v5 • Secure</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Comic+Neue:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        /* --- CSS NEOBRUTALISM (Sama seperti sebelumnya) --- */
+        :root {
+            --bg: #F4F4F0; --black: #000; --white: #FFF; --yellow: #FFDE00; --cyan: #00E5FF;
+            --pink: #FF69B4; --lime: #C4F000; --purple: #B388FF; --orange: #FF9100;
+            --border: 4px solid var(--black); --shadow: 6px 6px 0 var(--black); --shadow-sm: 3px 3px 0 var(--black);
+            --font: 'Inter', sans-serif;
+        }
+        body.font-inter { --font: 'Inter', sans-serif; } body.font-mono { --font: 'Space Mono', monospace; }
+        body.font-bricolage { --font: 'Bricolage Grotesque', sans-serif; } body.font-comic { --font: 'Comic Neue', cursive; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); font-family: var(--font); color: var(--black); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; overflow: hidden; }
+        .app-container { width: 100%; max-width: 900px; height: 92vh; background: var(--white); border: var(--border); box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: var(--border); background: var(--yellow); flex-shrink: 0; gap: 10px; flex-wrap: wrap; z-index: 10; }
+        .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.2rem; text-transform: uppercase; }
+        .avatar-header { width: 42px; height: 42px; background: var(--white); border: var(--border); display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: var(--shadow-sm); animation: breathe 3s infinite; }
+        @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .nav-tabs { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .nav-btn, .icon-btn { background: var(--white); border: 3px solid var(--black); padding: 6px 12px; font-family: var(--font); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; cursor: pointer; box-shadow: 2px 2px 0 var(--black); transition: all 0.15s ease; display: flex; align-items: center; gap: 4px; color: var(--black); }
+        .icon-btn { padding: 6px 10px; font-size: 1.1rem; }
+        .nav-btn:hover, .icon-btn:hover { background: var(--lime); transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--black); }
+        .nav-btn.active { background: var(--cyan); transform: translate(2px, 2px); box-shadow: none; cursor: default; }
+        .music-player { display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: var(--white); border-bottom: var(--border); flex-shrink: 0; overflow: hidden; }
+        .music-cover { width: 40px; height: 40px; background: var(--purple); border: 3px solid var(--black); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .music-info { flex: 1; overflow: hidden; white-space: nowrap; }
+        .music-title { font-weight: 800; font-size: 0.9rem; text-overflow: ellipsis; overflow: hidden; }
+        .music-artist { font-size: 0.75rem; color: #555; font-weight: 600; }
+        .music-controls { display: flex; gap: 8px; align-items: center; }
+        .music-btn { background: var(--yellow); border: 3px solid var(--black); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 2px 2px 0 var(--black); transition: all 0.1s; }
+        .music-btn:active { transform: translate(2px, 2px); box-shadow: none; }
+        .view-container { flex: 1; position: relative; overflow: hidden; background: #FAFAFA; }
+        .view { position: absolute; inset: 0; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.3s; background: #FAFAFA; overflow: hidden; }
+        .view.active { opacity: 1; pointer-events: auto; z-index: 5; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; }
+        .chat-messages::-webkit-scrollbar { width: 12px; } .chat-messages::-webkit-scrollbar-track { background: var(--white); border-left: 3px solid var(--black); } .chat-messages::-webkit-scrollbar-thumb { background: var(--cyan); border: 3px solid var(--black); }
+        .message { display: flex; gap: 12px; max-width: 90%; animation: bubbleIn 0.4s ease forwards; opacity: 0; transform: translateY(10px); }
+        @keyframes bubbleIn { to { opacity: 1; transform: translateY(0); } }
+        .message.user { align-self: flex-end; flex-direction: row-reverse; } .message.bot { align-self: flex-start; }
+        .bubble-wrap { position: relative; display: flex; flex-direction: column; gap: 6px; max-width: calc(100% - 50px); }
+        .bubble { padding: 14px 18px; border: var(--border); font-size: 0.95rem; line-height: 1.55; font-weight: 500; word-wrap: break-word; box-shadow: var(--shadow-sm); background: var(--white); }
+        .message.user .bubble { background: var(--cyan); }
+        .message-avatar { width: 38px; height: 38px; flex-shrink: 0; border: 3px solid var(--black); display: flex; align-items: center; justify-content: center; font-size: 18px; background: var(--white); box-shadow: 2px 2px 0 var(--black); }
+        .message.user .message-avatar { background: var(--pink); } .message.bot .message-avatar { background: var(--lime); }
+        .copy-btn { position: absolute; bottom: -12px; right: -8px; background: var(--purple); border: 3px solid var(--black); padding: 4px 8px; font-size: 0.7rem; font-weight: 700; cursor: pointer; box-shadow: 2px 2px 0 var(--black); opacity: 0; transition: 0.2s; }
+        .message.bot:hover .copy-btn { opacity: 1; }
+        .chat-input-area { padding: 12px 16px; border-top: var(--border); background: var(--white); display: flex; gap: 10px; align-items: flex-end; }
+        .chat-input { flex: 1; padding: 14px; border: var(--border); font-family: var(--font); font-size: 0.95rem; outline: none; box-shadow: var(--shadow-sm); resize: none; min-height: 52px; max-height: 120px; }
+        .send-btn { width: 52px; height: 52px; background: var(--yellow); border: var(--border); box-shadow: var(--shadow-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+        .page-content { padding: 24px; overflow-y: auto; height: 100%; }
+        .card { background: var(--white); border: var(--border); box-shadow: var(--shadow-sm); padding: 16px; margin-bottom: 16px; }
+        .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 200; opacity: 0; pointer-events: none; transition: 0.2s; padding: 20px; }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .modal-box { background: var(--white); border: var(--border); box-shadow: var(--shadow); padding: 24px; width: 100%; max-width: 400px; transform: scale(0.9); transition: 0.2s; display: flex; flex-direction: column; gap: 12px; }
+        .modal-overlay.show .modal-box { transform: scale(1); }
+        .modal-input { width: 100%; padding: 12px; border: 3px solid var(--black); font-family: var(--font); font-weight: 600; outline: none; }
+        .modal-btn { width: 100%; padding: 12px; border: 3px solid var(--black); background: var(--yellow); font-weight: 800; font-family: var(--font); cursor: pointer; box-shadow: 3px 3px 0 var(--black); text-transform: uppercase; }
+        .modal-btn:active { transform: translate(3px, 3px); box-shadow: none; }
+        .toast { position: absolute; top: 100px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--pink); border: var(--border); padding: 10px 20px; font-weight: 700; z-index: 300; opacity: 0; transition: 0.3s; pointer-events: none; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        @media (max-width: 600px) { body { padding: 0; } .app-container { height: 100vh; border: none; box-shadow: none; } .nav-btn span { display: none; } .nav-btn i { font-size: 1.2rem; } }
+    </style>
+</head>
+<body class="font-inter">
+
+<div class="app-container" id="app">
+    <div class="toast" id="toast">Notifikasi</div>
+
+    <header class="top-bar">
+        <div class="brand">
+            <div class="avatar-header"><i class="ph ph-robot"></i></div>
+            <span>NeoBot</span>
+        </div>
+        <div class="nav-tabs">
+            <button class="nav-btn active" data-view="chat"><i class="ph ph-chat-teardrop-text"></i> <span>Chat</span></button>
+            <button class="nav-btn" data-view="about"><i class="ph ph-info"></i> <span>About</span></button>
+            <button class="icon-btn" id="btnLogin" title="Login/Daftar"><i class="ph ph-user-circle"></i></button>
+            <button class="icon-btn" id="btnExport" title="Ekspor Chat"><i class="ph ph-download-simple"></i></button>
+            <button class="icon-btn" id="btnSettings" title="Font"><i class="ph ph-text-aa"></i></button>
+            <button class="icon-btn" id="btnClearChat" title="Hapus"><i class="ph ph-trash"></i></button>
+        </div>
+    </header>
+
+    <div class="music-player">
+        <div class="music-cover"><i class="ph ph-music-notes"></i></div>
+        <div class="music-info">
+            <div class="music-title" id="musicTitle">NeoBot Theme</div>
+            <div class="music-artist" id="musicArtist">NeoBot Official</div>
+        </div>
+        <div class="music-controls">
+            <button class="music-btn" id="musicToggle"><i class="ph ph-play" id="musicIcon"></i></button>
+        </div>
+        <!-- GANTI URL DI BAWAH DENGAN LINK MUSIK KAMU -->
+        <audio id="bgMusic" loop>
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <div class="view-container">
+        <section class="view active" id="view-chat">
+            <main class="chat-messages" id="chatMessages">
+                <div style="text-align: center; padding: 40px;" id="emptyState"><h2 style="font-weight: 800;">Mulai Obrolan</h2><p>Tanyakan apa saja ke NeoBot.</p></div>
+            </main>
+            <div class="chat-input-area">
+                <textarea class="chat-input" id="userInput" placeholder="Ketik pesan..." rows="1"></textarea>
+                <button class="send-btn" id="sendBtn"><i class="ph ph-paper-plane-right"></i></button>
+            </div>
+        </section>
+
+        <section class="view" id="view-about">
+            <div class="page-content">
+                <h2 style="font-size: 1.8rem; font-weight: 800; text-transform: uppercase; border-bottom: 4px solid #000; padding-bottom: 8px; margin-bottom: 20px;">About NeoBot</h2>
+                <div class="card">
+                    <h3 style="font-weight: 800; display: flex; gap: 8px; align-items: center;"><i class="ph ph-robot"></i> Apa ini?</h3>
+                    <p style="margin-top: 10px; line-height: 1.6;">NeoBot v5 adalah asisten AI dengan antarmuka Neobrutalism. Dilengkapi fitur musik, ekspor, dan login (simulasi).</p>
+                </div>
+                <div class="card" style="background: #C4F000;">
+                    <h3 style="font-weight: 800; display: flex; gap: 8px; align-items: center;"><i class="ph ph-shield-check"></i> Keamanan</h3>
+                    <p style="margin-top: 10px; line-height: 1.6; font-size: 0.9rem;">API Key Groq kini tersimpan aman di sisi server (backend). Frontend hanya berkomunikasi dengan backend lokal/proxy.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #000; padding-bottom: 10px; margin-bottom: 10px;">
+                <h2 style="font-weight: 800; text-transform: uppercase; font-size: 1.3rem;"><i class="ph ph-user-circle"></i> Login</h2>
+                <button class="icon-btn" id="closeAuthModal" style="padding: 2px 8px;"><i class="ph ph-x"></i></button>
+            </div>
+            <input type="email" id="authEmail" class="modal-input" placeholder="Email">
+            <input type="password" id="authPassword" class="modal-input" placeholder="Password">
+            <button class="modal-btn" id="btnAuthSubmit">Masuk / Daftar</button>
+            <p style="font-size: 0.75rem; text-align: center; color: #666; margin-top: 8px;">*Simulasi visual. Tidak terhubung ke Supabase asli.</p>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="fontModal">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #000; padding-bottom: 10px; margin-bottom: 10px;">
+                <h2 style="font-weight: 800; text-transform: uppercase; font-size: 1.3rem;"><i class="ph ph-text-aa"></i> Font</h2>
+                <button class="icon-btn" id="closeFontModal" style="padding: 2px 8px;"><i class="ph ph-x"></i></button>
+            </div>
+            <button class="modal-btn font-option" data-font="inter" style="background: #fff; font-family: 'Inter';">Inter (Default)</button>
+            <button class="modal-btn font-option" data-font="mono" style="background: #fff; font-family: 'Space Mono';">Space Mono</button>
+            <button class="modal-btn font-option" data-font="bricolage" style="background: #fff; font-family: 'Bricolage Grotesque';">Bricolage Grotesque</button>
+            <button class="modal-btn font-option" data-font="comic" style="background: #fff; font-family: 'Comic Neue';">Comic Neue</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============ KONFIGURASI ============
+    // URL backend kita (pastikan server.js berjalan di port ini)
+    const BACKEND_URL = "http://localhost:3001/api/chat";
+
+    // ============ DOM ============
+    const chatMessages = document.getElementById('chatMessages');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const toast = document.getElementById('toast');
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const views = document.querySelectorAll('.view');
+    const bgMusic = document.getElementById('bgMusic');
+    const musicToggle = document.getElementById('musicToggle');
+    const musicIcon = document.getElementById('musicIcon');
+
+    // ============ STATE ============
+    let conversationHistory = [{ role: "system", content: "Kamu adalah NeoBot, asisten AI ramah. Jawab dalam bahasa Indonesia." }];
+    let isProcessing = false;
+    let isMusicPlaying = false;
+
+    // ============ AUDIO BEEP ============
+    let audioCtx = null;
+    function beep(freq = 600, duration = 0.08) {
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.frequency.value = freq; gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
+        } catch(e) {}
+    }
+
+    // ============ TOAST ============
+    let toastTimer;
+    function showToast(msg, type = 'error') {
+        toast.textContent = msg; toast.style.background = type === 'success' ? 'var(--lime)' : 'var(--pink)';
+        toast.classList.add('show'); clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+
+    // ============ MUSIK ============
+    function startMusicOnInteraction() {
+        if (isMusicPlaying) return;
+        bgMusic.muted = false;
+        bgMusic.play().then(() => {
+            isMusicPlaying = true; musicIcon.className = 'ph ph-pause';
+            document.removeEventListener('click', startMusicOnInteraction);
+            document.removeEventListener('touchstart', startMusicOnInteraction);
+            document.removeEventListener('keydown', startMusicOnInteraction);
+        }).catch(() => {});
+    }
+    bgMusic.muted = true;
+    bgMusic.play().catch(() => {
+        document.addEventListener('click', startMusicOnInteraction);
+        document.addEventListener('touchstart', startMusicOnInteraction);
+        document.addEventListener('keydown', startMusicOnInteraction);
+    });
+    musicToggle.addEventListener('click', () => {
+        if (bgMusic.paused) { bgMusic.muted = false; bgMusic.play().then(() => { isMusicPlaying = true; musicIcon.className = 'ph ph-pause'; }); }
+        else { bgMusic.pause(); isMusicPlaying = false; musicIcon.className = 'ph ph-play'; }
+        beep(700, 0.05);
+    });
+
+    // ============ NAVIGASI ============
+    navBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            navBtns.forEach(b => b.classList.remove('active'));
+            views.forEach(v => v.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(`view-${btn.dataset.view}`).classList.add('active');
+            beep(700, 0.04);
+        });
+    });
+
+    // ============ MODAL ============
+    const authModal = document.getElementById('authModal');
+    document.getElementById('btnLogin').onclick = () => authModal.classList.add('show');
+    document.getElementById('closeAuthModal').onclick = () => authModal.classList.remove('show');
+    document.getElementById('btnAuthSubmit').onclick = () => {
+        const email = document.getElementById('authEmail').value;
+        if(!email) return showToast('Email wajib diisi', 'error');
+        showToast(`✓ Simulasi login berhasil`, 'success'); authModal.classList.remove('show'); beep(880, 0.1);
+    };
+    const fontModal = document.getElementById('fontModal');
+    document.getElementById('btnSettings').onclick = () => fontModal.classList.add('show');
+    document.getElementById('closeFontModal').onclick = () => fontModal.classList.remove('show');
+    document.querySelectorAll('.font-option').forEach(opt => {
+        opt.onclick = () => { document.body.className = `font-${opt.dataset.font}`; localStorage.setItem('neobot_font', opt.dataset.font); fontModal.classList.remove('show'); beep(700, 0.05); };
+    });
+
+    // ============ EKSPOR ============
+    document.getElementById('btnExport').onclick = () => {
+        const history = conversationHistory.filter(m => m.role !== 'system');
+        if (history.length === 0) return showToast('Belum ada obrolan', 'error');
+        let text = "=== NeoBot Chat Export ===\n\n";
+        history.forEach(m => { text += `[${m.role === 'user' ? 'Kamu' : 'NeoBot'}]:\n${m.content}\n\n`; });
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `neobot_chat_${Date.now()}.txt`; a.click();
+        URL.revokeObjectURL(url); showToast('✓ Chat diekspor', 'success'); beep(880, 0.1);
+    };
+
+    // ============ RENDER & KIRIM ============
+    function addMessage(role, text) {
+        const empty = document.getElementById('emptyState'); if (empty) empty.remove();
+        const div = document.createElement('div'); div.className = `message ${role}`;
+        const av = document.createElement('div'); av.className = 'message-avatar'; av.innerHTML = `<i class="ph ${role === 'user' ? 'ph-user' : 'ph-robot'}"></i>`;
+        const wrap = document.createElement('div'); wrap.className = 'bubble-wrap';
+        const bubble = document.createElement('div'); bubble.className = 'bubble'; bubble.textContent = text;
+        wrap.appendChild(bubble);
+        if (role === 'bot') {
+            const copyBtn = document.createElement('button'); copyBtn.className = 'copy-btn'; copyBtn.innerHTML = '<i class="ph ph-copy"></i> Copy';
+            copyBtn.onclick = () => { navigator.clipboard.writeText(text); showToast('✓ Disalin', 'success'); };
+            wrap.appendChild(copyBtn);
+        }
+        div.appendChild(av); div.appendChild(wrap); chatMessages.appendChild(div);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    function showTyping() {
+        const empty = document.getElementById('emptyState'); if (empty) empty.remove();
+        const div = document.createElement('div'); div.className = 'message bot'; div.id = 'typingMsg';
+        div.innerHTML = `<div class="message-avatar"><i class="ph ph-robot"></i></div><div class="bubble-wrap"><div class="bubble">...</div></div>`;
+        chatMessages.appendChild(div); chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    function hideTyping() { const el = document.getElementById('typingMsg'); if (el) el.remove(); }
+
+    async function sendMessage() {
+        const text = userInput.value.trim(); if (!text || isProcessing) return;
+        
+        addMessage('user', text); conversationHistory.push({ role: 'user', content: text });
+        userInput.value = ''; userInput.style.height = 'auto';
+        isProcessing = true; sendBtn.disabled = true; showTyping();
+
+        try {
+            // Panggil BACKEND kita, bukan Groq langsung
+            const res = await fetch(BACKEND_URL, {
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: conversationHistory })
+            });
+            
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Gagal dari server');
+            
+            const reply = data.reply;
+            hideTyping(); addMessage('bot', reply); conversationHistory.push({ role: 'assistant', content: reply });
+            beep(880, 0.08);
+        } catch (e) {
+            hideTyping(); addMessage('bot', `❌ Error: ${e.message}`); showToast('Koneksi ke backend gagal', 'error'); beep(200, 0.15);
+        } finally { isProcessing = false; sendBtn.disabled = false; userInput.focus(); }
+    }
+
+    sendBtn.onclick = sendMessage;
+    userInput.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
+
+    // ============ INIT ============
+    window.addEventListener('load', () => {
+        const savedFont = localStorage.getItem('neobot_font') || 'inter';
+        document.body.className = `font-${savedFont}`;
+        userInput.focus();
+    });
+    
+    // ============ MODAL ============
+const authModal = document.getElementById('authModal');
+document.getElementById('btnLogin').onclick = () => authModal.classList.add('show');
+document.getElementById('closeAuthModal').onclick = () => authModal.classList.remove('show');
+
+// 👇 GANTI BAGIAN INI 👇
+document.getElementById('btnAuthSubmit').onclick = () => {
+    const email = document.getElementById('authEmail').value;
+    if(!email) return showToast('Email wajib diisi', 'error');
+    showToast(`✓ Simulasi login berhasil`, 'success'); 
+    authModal.classList.remove('show'); 
+    beep(880, 0.1);
+};
+// 👆 SAMPAI SINI 👆
+</script>
+</body>
+</html>
